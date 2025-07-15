@@ -570,21 +570,21 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         clangd = {},
-        gopls = {
-          cmd = { 'gopls' },
-          filetypes = { 'go', 'gomod', 'gowork', 'gotmpl' },
-          settings = {
-            gopls = {
-              completeUnimported = true,
-              unusedparams = true,
-              analyses = {
-                usePlaceholders = true,
-                shadow = true,
-              },
-              staticcheck = true,
-            },
-          },
-        },
+        -- gopls = {
+        --   cmd = { 'gopls' },
+        --   filetypes = { 'go', 'gomod', 'gowork', 'gotmpl' },
+        --   settings = {
+        --     gopls = {
+        --       completeUnimported = true,
+        --       unusedparams = true,
+        --       analyses = {
+        --         usePlaceholders = true,
+        --         shadow = true,
+        --       },
+        --       staticcheck = true,
+        --     },
+        --   },
+        -- },
         -- pyright = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
@@ -596,7 +596,7 @@ require('lazy').setup({
         --
         ts_ls = {},
         --
-
+        intelephense = {},
         -- volar = {},
 
         lua_ls = {
@@ -667,7 +667,7 @@ require('lazy').setup({
         -- languages here or re-enable it for the disabled ones.
         local disable_filetypes = { c = true, cpp = true }
         return {
-          timeout_ms = 500,
+          timeout_ms = 3000,
           lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
         }
       end,
@@ -678,7 +678,18 @@ require('lazy').setup({
         --
         -- You can use a sub-list to tell conform to run *until* a formatter
         -- is found.
-        javascript = { { 'prettierd', 'prettier' } },
+        javascript = { 'prettierd', 'prettier' },
+        typescript = { 'prettierd', 'prettier' },
+        javascriptreact = { 'prettierd', 'prettier' },
+        typescriptreact = { 'prettierd', 'prettier' },
+        json = { 'prettierd', 'prettier' },
+        html = { 'prettierd', 'prettier' },
+        css = { 'prettierd', 'prettier' },
+        markdown = { 'prettierd', 'prettier' },
+        yaml = { 'prettierd', 'prettier' },
+      },
+      default_format_opts = {
+        stop_after_first = true,
       },
     },
   },
@@ -858,7 +869,7 @@ require('lazy').setup({
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'vim', 'vimdoc', 'typescript', 'go' },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'vim', 'vimdoc', 'typescript', 'go', 'hcl', 'terraform' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
@@ -888,6 +899,16 @@ require('lazy').setup({
   },
 
   { 'github/copilot.vim' },
+
+  {
+    'prettier/vim-prettier',
+    config = function()
+      vim.g['prettier#autoformat'] = 1
+      vim.g['prettier#autoformat_require_pragma'] = 0
+      vim.g['prettier#quickfix_enabled'] = 0
+      vim.g['prettier#exec_cmd_async'] = 1
+    end,
+  },
 
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
