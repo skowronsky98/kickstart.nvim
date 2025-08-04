@@ -12,13 +12,12 @@ return {
     'jay-babu/mason-nvim-dap.nvim',
     -- Add your own debuggers here
     -- 'leoluz/nvim-dap-go',
-    -- JavaScript/TypeScript debugger (optional, we'll configure manually)
-    'mxsdev/nvim-dap-vscode-js',
   },
   config = function()
     local dap = require 'dap'
     local dapui = require 'dapui'
     require('mason-nvim-dap').setup {
+      dependencies = { 'mfussenegger/nvim-dap', 'williamboman/mason.nvim' },
       -- Makes a best effort to setup the various debuggers with
       -- reasonable debug configurations
       automatic_installation = true,
@@ -69,6 +68,155 @@ return {
     dap.listeners.before.event_terminated['dapui_config'] = dapui.close
     dap.listeners.before.event_exited['dapui_config'] = dapui.close
 
+    -- Setup js-debug-adapter directly (Mason version)
+    dap.adapters['pwa-node'] = {
+      type = 'server',
+      host = 'localhost',
+      port = '${port}',
+      executable = {
+        command = vim.fn.stdpath 'data' .. '/mason/packages/js-debug-adapter/js-debug-adapter',
+        args = { '${port}' },
+      },
+    }
+
+    dap.adapters['pwa-chrome'] = {
+      type = 'server',
+      host = 'localhost',
+      port = '${port}',
+      executable = {
+        command = vim.fn.stdpath 'data' .. '/mason/packages/js-debug-adapter/js-debug-adapter',
+        args = { '${port}' },
+      },
+    }
+
+    dap.adapters['node-terminal'] = {
+      type = 'server',
+      host = 'localhost',
+      port = '${port}',
+      executable = {
+        command = vim.fn.stdpath 'data' .. '/mason/packages/js-debug-adapter/js-debug-adapter',
+        args = { '${port}' },
+      },
+    }
+
+    -- Node.js/JavaScript/TypeScript configurations
+    for _, language in ipairs { 'typescript', 'javascript', 'typescriptreact', 'javascriptreact' } do
+      dap.configurations[language] = {
+        -- Launch current file with Node.js
+        {
+          type = 'pwa-node',
+          request = 'launch',
+          name = 'Launch Current File (Node.js)',
+          program = '${file}',
+          cwd = '${workspaceFolder}',
+          sourceMaps = true,
+          skipFiles = { '<node_internals>/**' },
+          console = 'integratedTerminal',
+        },
+        -- Launch with ts-node for TypeScript files
+        {
+          type = 'pwa-node',
+          request = 'launch',
+          name = 'Launch Current File (ts-node)',
+          program = '${file}',
+          cwd = '${workspaceFolder}',
+          runtimeExecutable = 'npx',
+          runtimeArgs = { 'ts-node', '${file}' },
+          sourceMaps = true,
+          skipFiles = { '<node_internals>/**' },
+          console = 'integratedTerminal',
+        },
+        -- Launch with tsx (alternative to ts-node)
+        {
+          type = 'pwa-node',
+          request = 'launch',
+          name = 'Launch Current File (tsx)',
+          program = '${file}',
+          cwd = '${workspaceFolder}',
+          runtimeExecutable = 'npx',
+          runtimeArgs = { 'tsx', '${file}' },
+          sourceMaps = true,
+          skipFiles = { '<node_internals>/**' },
+          console = 'integratedTerminal',
+        },
+        -- Launch npm script (e.g., npm start, npm run dev)
+        {
+          type = 'pwa-node',
+          request = 'launch',
+          name = 'Launch via NPM Script',
+          runtimeExecutable = 'npm',
+          runtimeArgs = function()
+            local script = vim.fn.input('NPM script name: ', 'start')
+            return { 'run', script }
+          end,
+          cwd = '${workspaceFolder}',
+          sourceMaps = true,
+          skipFiles = { '<node_internals>/**' },
+          console = 'integratedTerminal',
+        },
+        -- Attach to running Node.js process
+        {
+          type = 'pwa-node',
+          request = 'attach',
+          name = 'Attach to Node Process',
+          processId = require('dap.utils').pick_process,
+          cwd = '${workspaceFolder}',
+          sourceMaps = true,
+          skipFiles = { '<node_internals>/**' },
+        },
+        -- Attach to Node.js process running with --inspect
+        {
+          type = 'pwa-node',
+          request = 'attach',
+          name = 'Attach to Node --inspect',
+          address = 'localhost',
+          port = 9229,
+          localRoot = '${workspaceFolder}',
+          remoteRoot = '${workspaceFolder}',
+          sourceMaps = true,
+          skipFiles = { '<node_internals>/**' },
+        },
+        -- Debug Jest tests
+        {
+          type = 'pwa-node',
+          request = 'launch',
+          name = 'Debug Jest Tests (Current File)',
+          program = '${workspaceFolder}/node_modules/.bin/jest',
+          args = { '${fileBasenameNoExtension}', '--runInBand' },
+          cwd = '${workspaceFolder}',
+          console = 'integratedTerminal',
+          internalConsoleOptions = 'neverOpen',
+          sourceMaps = true,
+          skipFiles = { '<node_internals>/**' },
+        },
+        {
+          type = 'pwa-node',
+          request = 'launch',
+          name = 'Debug All Jest Tests',
+          program = '${workspaceFolder}/node_modules/.bin/jest',
+          args = { '--runInBand' },
+          cwd = '${workspaceFolder}',
+          console = 'integratedTerminal',
+          internalConsoleOptions = 'neverOpen',
+          sourceMaps = true,
+          skipFiles = { '<node_internals>/**' },
+        },
+        -- Debug Mocha tests
+        {
+          type = 'pwa-node',
+          request = 'launch',
+          name = 'Debug Mocha Tests',
+          program = '${workspaceFolder}/node_modules/.bin/mocha',
+          args = { '${file}' },
+          cwd = '${workspaceFolder}',
+          console = 'integratedTerminal',
+          internalConsoleOptions = 'neverOpen',
+          sourceMaps = true,
+          skipFiles = { '<node_internals>/**' },
+        },
+      }
+    end
+
     -- -- Install golang specific config
     -- require('dap-go').setup {
     --   delve = {
@@ -77,47 +225,5 @@ return {
     --     detached = vim.fn.has 'win32' == 0,
     --   },
     -- }
-
-    -- Manual Node.js debug adapter configuration
-    dap.adapters.node2 = {
-      type = 'executable',
-      command = vim.fn.stdpath 'data' .. '/mason/packages/js-debug-adapter/js-debug-adapter',
-      args = {},
-    }
-
-    -- Configure debug configurations for TypeScript/JavaScript
-    for _, language in ipairs { 'typescript', 'javascript' } do
-      dap.configurations[language] = {
-        {
-          name = 'Launch',
-          type = 'node2',
-          request = 'launch',
-          program = '${file}',
-          cwd = vim.fn.getcwd(),
-          sourceMaps = true,
-          protocol = 'inspector',
-          console = 'integratedTerminal',
-        },
-        {
-          name = 'Launch TypeScript',
-          type = 'node2',
-          request = 'launch',
-          program = '${file}',
-          cwd = vim.fn.getcwd(),
-          runtimeExecutable = 'npx',
-          runtimeArgs = { 'ts-node' },
-          sourceMaps = true,
-          protocol = 'inspector',
-          console = 'integratedTerminal',
-        },
-        {
-          name = 'Attach',
-          type = 'node2',
-          request = 'attach',
-          processId = require('dap.utils').pick_process,
-          cwd = vim.fn.getcwd(),
-        },
-      }
-    end
   end,
 }
