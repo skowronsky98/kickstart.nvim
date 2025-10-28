@@ -102,31 +102,7 @@ return {
     -- Node.js/JavaScript/TypeScript configurations
     for _, language in ipairs { 'typescript', 'javascript', 'typescriptreact', 'javascriptreact' } do
       dap.configurations[language] = {
-        -- Launch current file with Node.js
-        {
-          type = 'pwa-node',
-          request = 'launch',
-          name = 'Launch Current File (Node.js)',
-          program = '${file}',
-          cwd = '${workspaceFolder}',
-          sourceMaps = true,
-          skipFiles = { '<node_internals>/**' },
-          console = 'integratedTerminal',
-        },
-        -- Launch with ts-node for TypeScript files
-        {
-          type = 'pwa-node',
-          request = 'launch',
-          name = 'Launch Current File (ts-node)',
-          program = '${file}',
-          cwd = '${workspaceFolder}',
-          runtimeExecutable = 'npx',
-          runtimeArgs = { 'ts-node', '${file}' },
-          sourceMaps = true,
-          skipFiles = { '<node_internals>/**' },
-          console = 'integratedTerminal',
-        },
-        -- Launch with tsx (alternative to ts-node)
+        -- Launch with tsx
         {
           type = 'pwa-node',
           request = 'launch',
@@ -138,43 +114,6 @@ return {
           sourceMaps = true,
           skipFiles = { '<node_internals>/**' },
           console = 'integratedTerminal',
-        },
-        -- Launch npm script (e.g., npm start, npm run dev)
-        {
-          type = 'pwa-node',
-          request = 'launch',
-          name = 'Launch via NPM Script',
-          runtimeExecutable = 'npm',
-          runtimeArgs = function()
-            local script = vim.fn.input('NPM script name: ', 'start')
-            return { 'run', script }
-          end,
-          cwd = '${workspaceFolder}',
-          sourceMaps = true,
-          skipFiles = { '<node_internals>/**' },
-          console = 'integratedTerminal',
-        },
-        -- Attach to running Node.js process
-        {
-          type = 'pwa-node',
-          request = 'attach',
-          name = 'Attach to Node Process',
-          processId = require('dap.utils').pick_process,
-          cwd = '${workspaceFolder}',
-          sourceMaps = true,
-          skipFiles = { '<node_internals>/**' },
-        },
-        -- Attach to Node.js process running with --inspect
-        {
-          type = 'pwa-node',
-          request = 'attach',
-          name = 'Attach to Node --inspect',
-          address = 'localhost',
-          port = 9229,
-          localRoot = '${workspaceFolder}',
-          remoteRoot = '${workspaceFolder}',
-          sourceMaps = true,
-          skipFiles = { '<node_internals>/**' },
         },
         -- Debug Jest tests
         {
@@ -189,30 +128,21 @@ return {
           sourceMaps = true,
           skipFiles = { '<node_internals>/**' },
         },
+        -- Debug Vitest tests
         {
           type = 'pwa-node',
           request = 'launch',
-          name = 'Debug All Jest Tests',
-          program = '${workspaceFolder}/node_modules/.bin/jest',
-          args = { '--runInBand' },
+          name = 'Debug Vitest Tests (Current File)',
+          program = '${workspaceFolder}/../../node_modules/.bin/vitest',
+          args = { 'run', '${fileBasenameNoExtension}', '--reporter=verbose' },
           cwd = '${workspaceFolder}',
           console = 'integratedTerminal',
           internalConsoleOptions = 'neverOpen',
           sourceMaps = true,
           skipFiles = { '<node_internals>/**' },
-        },
-        -- Debug Mocha tests
-        {
-          type = 'pwa-node',
-          request = 'launch',
-          name = 'Debug Mocha Tests',
-          program = '${workspaceFolder}/node_modules/.bin/mocha',
-          args = { '${file}' },
-          cwd = '${workspaceFolder}',
-          console = 'integratedTerminal',
-          internalConsoleOptions = 'neverOpen',
-          sourceMaps = true,
-          skipFiles = { '<node_internals>/**' },
+          env = {
+            NODE_ENV = 'test',
+          },
         },
       }
     end
