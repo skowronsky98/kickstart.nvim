@@ -86,6 +86,22 @@ vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next [D]iagn
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show diagnostic [E]rror messages' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
+-- Copy current file absolute path to clipboard
+vim.keymap.set('n', '<leader>cf', function()
+  vim.fn.setreg('+', vim.fn.expand '%:p')
+  print('Copied: ' .. vim.fn.expand '%:p')
+end, { desc = 'Copy file path' })
+-- Copy current file relative path to clipboard
+vim.keymap.set('n', '<leader>cr', function()
+  vim.fn.setreg('+', vim.fn.expand '%')
+  print('Copied: ' .. vim.fn.expand '%')
+end, { desc = 'Copy relative path' })
+-- Copy current filename only to clipboard
+vim.keymap.set('n', '<leader>cn', function()
+  vim.fn.setreg('+', vim.fn.expand '%:t')
+  print('Copied: ' .. vim.fn.expand '%:t')
+end, { desc = 'Copy file[n]ame' })
+
 -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
 -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
 -- is not what someone will guess without a bit more experience.
@@ -570,21 +586,21 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         clangd = {},
-        -- gopls = {
-        --   cmd = { 'gopls' },
-        --   filetypes = { 'go', 'gomod', 'gowork', 'gotmpl' },
-        --   settings = {
-        --     gopls = {
-        --       completeUnimported = true,
-        --       unusedparams = true,
-        --       analyses = {
-        --         usePlaceholders = true,
-        --         shadow = true,
-        --       },
-        --       staticcheck = true,
-        --     },
-        --   },
-        -- },
+        gopls = {
+          cmd = { 'gopls' },
+          filetypes = { 'go', 'gomod', 'gowork', 'gotmpl' },
+          settings = {
+            gopls = {
+              completeUnimported = true,
+              unusedparams = true,
+              analyses = {
+                usePlaceholders = true,
+                shadow = true,
+              },
+              staticcheck = true,
+            },
+          },
+        },
         -- pyright = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
@@ -663,17 +679,27 @@ require('lazy').setup({
       },
     },
     opts = {
-      notify_on_error = false,
+      notify_on_error = true,
       format_on_save = function(bufnr)
         -- Disable "format_on_save lsp_fallback" for languages that don't
         -- have a well standardized coding style. You can add additional
         -- languages here or re-enable it for the disabled ones.
         local disable_filetypes = {
-          -- c = true, cpp = true
+          c = true,
+          cpp = true,
+          javascript = true,
+          typescript = true,
+          javascriptreact = true,
+          typescriptreact = true,
+          json = true,
+          yaml = true,
         }
+        if disable_filetypes[vim.bo[bufnr].filetype] then
+          return nil -- Completely disable format on save
+        end
         return {
           timeout_ms = 3000,
-          lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
+          lsp_fallback = true,
         }
       end,
       formatters_by_ft = {
@@ -685,15 +711,18 @@ require('lazy').setup({
         -- is found.
         c = { 'clang_format' },
         cpp = { 'clang_format' },
-        javascript = { 'prettierd', 'prettier' },
-        typescript = { 'prettierd', 'prettier' },
-        javascriptreact = { 'prettierd', 'prettier' },
-        typescriptreact = { 'prettierd', 'prettier' },
-        json = { 'prettierd', 'prettier' },
+        javascript = { 'prettierd' },
+        typescript = { 'prettierd' },
+        javascriptreact = { 'prettierd' },
+        typescriptreact = { 'prettierd' },
+        json = { 'prettierd' },
         html = { 'prettierd', 'prettier' },
         css = { 'prettierd', 'prettier' },
         markdown = { 'prettierd', 'prettier' },
         yaml = { 'prettierd', 'prettier' },
+        go = { 'goimports' },
+        terraform = { 'terraform_fmt' },
+        tf = { 'terraform_fmt' },
       },
       default_format_opts = {
         stop_after_first = true,
@@ -907,15 +936,15 @@ require('lazy').setup({
 
   { 'github/copilot.vim' },
 
-  {
-    'prettier/vim-prettier',
-    config = function()
-      vim.g['prettier#autoformat'] = 1
-      vim.g['prettier#autoformat_require_pragma'] = 0
-      vim.g['prettier#quickfix_enabled'] = 0
-      vim.g['prettier#exec_cmd_async'] = 1
-    end,
-  },
+  -- {
+  --   'prettier/vim-prettier',
+  --   config = function()
+  --     vim.g['prettier#autoformat'] = 0
+  --     vim.g['prettier#autoformat_require_pragma'] = 0
+  --     vim.g['prettier#quickfix_enabled'] = 0
+  --     vim.g['prettier#exec_cmd_async'] = 1
+  --   end,
+  -- },
 
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
