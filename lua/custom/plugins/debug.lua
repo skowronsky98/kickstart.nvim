@@ -14,12 +14,26 @@ return {
 
       require('mason-nvim-dap').setup {
         automatic_installation = true,
-        handlers = {},
+        handlers = {},  -- empty = use default handlers (install only, no config generation)
         ensure_installed = {
           'js-debug-adapter',
           'delve',
         },
       }
+
+      -- Remove auto-generated Go configurations from mason-nvim-dap (keep only nvim-dap-go ones)
+      vim.api.nvim_create_autocmd('FileType', {
+        pattern = { 'go' },
+        callback = function()
+          vim.schedule(function()
+            if dap.configurations.go then
+              dap.configurations.go = vim.tbl_filter(function(c)
+                return not vim.startswith(c.name, 'Delve:')
+              end, dap.configurations.go)
+            end
+          end)
+        end,
+      })
 
       -- Keymaps
       vim.keymap.set('n', '<F5>', dap.continue, { desc = 'Debug: Start/Continue' })
