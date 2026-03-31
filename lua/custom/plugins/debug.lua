@@ -68,7 +68,7 @@ return {
       }
 
       -- JS/TS adapter
-      -- NOTE: use 127.0.0.1 NOT localhost — macOS resolves localhost to IPv6 which breaks connection
+      -- NOTE: js-debug-adapter binds to ::1 (IPv6) on macOS — use host = '::1' in the adapter
       local dap_server = vim.fn.stdpath 'data' .. '/mason/packages/js-debug-adapter/js-debug/src/dapDebugServer.js'
 
       -- Use a function adapter so nvim-dap assigns a real port (not a template string)
@@ -137,7 +137,7 @@ return {
             type = 'pwa-node',
             request = 'attach',
             name = 'Attach to port 9229',
-            address = '127.0.0.1',
+            address = 'localhost',
             port = 9229,
             cwd = '${workspaceFolder}',
             restart = true,

@@ -5,7 +5,7 @@ return {
     keys = {
       {
         '<leader>f',
-        function() require('conform').format { async = true, lsp_fallback = true } end,
+        function() require('conform').format { async = true, lsp_format = 'fallback' } end,
         mode = '',
         desc = '[F]ormat buffer',
       },
@@ -22,7 +22,7 @@ return {
         if disable_filetypes[vim.bo[bufnr].filetype] then
           return nil
         end
-        return { timeout_ms = 3000, lsp_fallback = true }
+        return { timeout_ms = 3000, lsp_format = 'fallback' }
       end,
       formatters_by_ft = {
         lua = { 'stylua' },

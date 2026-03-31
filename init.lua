@@ -98,10 +98,6 @@ require('lazy').setup({
   { 'numToStr/Comment.nvim', opts = {} },
   { 'github/copilot.vim' },
 
-  require 'kickstart.plugins.lint',
-  require 'kickstart.plugins.gitsigns',
-  -- require 'kickstart.plugins.indent_line',
-
   { import = 'custom.plugins' },
 }, {
   ui = {
