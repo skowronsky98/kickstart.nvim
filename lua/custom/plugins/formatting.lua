@@ -34,6 +34,7 @@ return {
         typescriptreact = { 'prettierd' },
         json = { 'prettierd' },
         html = { 'prettierd', 'prettier' },
+        mjml = { 'prettierd', 'prettier' },
         css = { 'prettierd', 'prettier' },
         markdown = { 'prettierd', 'prettier' },
         yaml = { 'prettierd', 'prettier' },

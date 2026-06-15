@@ -44,18 +44,18 @@ vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Show diagn
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
 
 -- Copy path keymaps
-vim.keymap.set('n', '<leader>cf', function()
+vim.keymap.set('n', '<leader>cg', function()
   vim.fn.setreg('+', vim.fn.expand '%:p')
   print('Copied: ' .. vim.fn.expand '%:p')
-end, { desc = 'Copy file path' })
+end, { desc = 'Copy [g]lobal file path' })
 vim.keymap.set('n', '<leader>cr', function()
   vim.fn.setreg('+', vim.fn.expand '%')
   print('Copied: ' .. vim.fn.expand '%')
-end, { desc = 'Copy relative path' })
-vim.keymap.set('n', '<leader>cn', function()
+end, { desc = 'Copy [r]elative file path' })
+vim.keymap.set('n', '<leader>cf', function()
   vim.fn.setreg('+', vim.fn.expand '%:t')
   print('Copied: ' .. vim.fn.expand '%:t')
-end, { desc = 'Copy file[n]ame' })
+end, { desc = 'Copy [f]ilename' })
 
 -- Terminal
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
@@ -76,6 +76,18 @@ vim.keymap.set('n', '<leader>bd', ':bd!<CR>', { desc = '[B]uffer [D]elete' })
 vim.keymap.set('n', '<leader>br', ':!rm %<CR>:bd!<CR>', { desc = '[B]uffer [R]emove' })
 
 -- [[ Basic Autocommands ]]
+vim.api.nvim_create_autocmd('VimLeavePre', {
+  callback = function()
+    -- Kill LSP servers (direct children communicating via stdio: ts_ls, terraformls, etc.)
+    vim.fn.system(string.format('pkill -TERM -P %d 2>/dev/null; true', vim.fn.getpid()))
+    -- prettierd daemonizes itself (double-fork) so it's never a direct child
+    local nvim_count = tonumber(vim.fn.system 'pgrep -xc nvim 2>/dev/null') or 0
+    if nvim_count <= 1 then
+      vim.fn.system 'pkill -9 -x prettierd 2>/dev/null; true'
+    end
+  end,
+})
+
 vim.api.nvim_create_autocmd('TextYankPost', {
   desc = 'Highlight when yanking (copying) text',
   group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
@@ -95,9 +107,6 @@ vim.opt.rtp:prepend(lazypath)
 -- [[ Configure plugins ]]
 require('lazy').setup({
   'tpope/vim-sleuth',
-  { 'numToStr/Comment.nvim', opts = {} },
-  { 'github/copilot.vim' },
-
   { import = 'custom.plugins' },
 }, {
   ui = {

@@ -70,24 +70,22 @@ return {
       -- JS/TS adapter
       local dap_server = vim.fn.stdpath 'data' .. '/mason/packages/js-debug-adapter/js-debug/src/dapDebugServer.js'
 
-      dap.adapters['pwa-node'] = function(cb, config)
-        local port = math.random(49152, 65535)
-        cb {
-          type = 'server',
-          host = '127.0.0.1',
-          port = port,
-          executable = {
-            command = 'node',
-            args = { dap_server, tostring(port) },
-          },
-        }
-      end
+      -- IMPORTANT: host must be '::1' (IPv6), NOT '127.0.0.1' (IPv4).
+      -- js-debug-adapter binds to ::1 on macOS. Using 127.0.0.1 causes ECONNREFUSED.
+      -- Port must use '${port}' template (not math.random) so nvim-dap manages
+      -- process startup timing and avoids race conditions.
+      dap.adapters['pwa-node'] = {
+        type = 'server',
+        host = '::1',
+        port = '${port}',
+        executable = {
+          command = 'node',
+          args = { dap_server, '${port}' },
+        },
+      }
 
       -- Alias for .vscode/launch.json compatibility
-      dap.adapters['node'] = function(cb, config)
-        config = vim.tbl_extend('force', config, { type = 'pwa-node' })
-        dap.adapters['pwa-node'](cb, config)
-      end
+      dap.adapters['node'] = dap.adapters['pwa-node']
 
 
       -- Detect tsx or ts-node runtime
